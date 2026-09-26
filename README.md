@@ -1,77 +1,77 @@
 # OpenAlex Literature Search v3
 
-研究テーマに関する文献をOpenAlex Works APIから検索し、被引用数・出版年・Open Access・撤回状態・抄録などを確認しながら文献候補を探索する静的Webアプリです。
+A static web application for exploring literature related to a research topic through the OpenAlex Works API. It helps users review candidate papers using citation counts, publication year, Open Access status, retraction status, abstracts, and other metadata.
 
-## 主な改善点
+## Main Improvements
 
-- 日本語 / English UI切り替え
-  - 右上の小さな2ボタン方式
-  - ラベル、ボタン、プルダウン、プレースホルダー、ステータス、検索結果、検索履歴まで切り替え
-  - 選択言語をlocalStorageに保存
+- Japanese / English UI switching
+  - Small two-button language selector in the upper-right corner
+  - Switches labels, buttons, dropdown options, placeholders, status messages, search results, and search history
+  - Saves the selected language in localStorage
 
-- Cursor方式のページネーション
-  - 前へ / 次へ
-  - 25 / 50 / 100件単位
-- 抄録表示
-  - `abstract_inverted_index` をブラウザ側で復元
-  - 各論文の「抄録を表示」から展開
-- 検索フィルタ拡張
-  - 検索範囲: タイトル・抄録・全文 / タイトルのみ / タイトル＋抄録 / 抄録のみ
-  - 出版年 From / To
-  - 最低被引用数
-  - 論文種別
-  - Open Access
-  - 撤回状態
-  - 抄録あり / なし
-  - 著者 OpenAlex ID
-  - 掲載先 OpenAlex ID
-- OA / 撤回の可視化
-  - OA / 非OAバッジ
-  - 撤回 / 通常バッジ
-  - 撤回論文の行を強調表示
-- 検索条件の保存
-  - APIキーを除く条件をlocalStorageへ保存
-  - 保存済み条件の読込・削除
-- 検索履歴
-  - 成功した検索を最大50件保存
-  - 条件復元 / 再検索 / 個別削除 / 全削除
-- CSV出力の検索条件記録
-  - 検索語、検索範囲、並び順、ページ、年範囲、各フィルタをCSVに保存
-  - 抄録、OA状態、撤回状態も出力
+- Cursor-based pagination
+  - Previous / Next navigation
+  - 25 / 50 / 100 results per page
+- Abstract display
+  - Reconstructs `abstract_inverted_index` in the browser
+  - Abstracts can be expanded for each paper
+- Expanded search filters
+  - Search scope: title, abstract, and full text / title only / title + abstract / abstract only
+  - Publication year From / To
+  - Minimum citation count
+  - Work type
+  - Open Access status
+  - Retraction status
+  - Abstract availability
+  - Author OpenAlex ID
+  - Source OpenAlex ID
+- Open Access / retraction visualization
+  - OA / non-OA badges
+  - Retracted / normal badges
+  - Retracted works are visually highlighted
+- Saved search conditions
+  - Saves search conditions to localStorage without the API key
+  - Saved conditions can be loaded or deleted
+- Search history
+  - Stores up to 50 successful searches
+  - Restore conditions / rerun search / delete individual entries / clear all history
+- Search conditions included in CSV output
+  - Saves query, search scope, sort order, page number, year range, and filters
+  - Also exports abstract, Open Access status, and retraction status
 
-## 使い方
+## Usage
 
-1. OpenAlexのAPIキーを用意します。
-2. このフォルダでローカルHTTPサーバーを起動します。
+1. Obtain an OpenAlex API key.
+2. Start a local HTTP server in this folder.
 
 ```bash
 python -m http.server 8000
 ```
 
-3. ブラウザで `http://localhost:8000` を開きます。
-4. APIキー、検索ワード、必要なフィルタを入力して検索します。
-5. 「前へ」「次へ」でページ移動できます。
-6. 必要な検索条件は名前を付けて保存できます。
-7. 検索結果は現在ページ単位でCSV保存できます。
+3. Open `http://localhost:8000` in a browser.
+4. Enter the API key, search query, and any desired filters.
+5. Use Previous and Next to move between result pages.
+6. Save useful search conditions under a custom name when needed.
+7. Export the currently displayed result page as CSV.
 
-## ファイル
+## Files
 
-- `index.html` — UI
-- `styles.css` — デザイン
-- `app.js` — OpenAlex API検索、ページネーション、抄録復元、履歴・保存条件、CSV出力
+- `index.html` — User interface
+- `styles.css` — Styling
+- `app.js` — OpenAlex API search, pagination, abstract reconstruction, search history, saved conditions, and CSV export
 
-## データと検索について
+## Data and Search Behavior
 
-- OpenAlexの通常の `search` はタイトル・抄録・全文を対象にします。
-- タイトルのみ / 抄録のみ等はOpenAlexの `.search` フィルタを利用します。
-- Cursor paginationを利用するため、大量ヒットでもページを継続して取得できます。
-- OpenAlexの抄録は平文ではなく `abstract_inverted_index` として返されるため、アプリ内で語順を復元します。
-- 著者名や掲載誌名によるWorksの直接フィルタではなく、OpenAlex IDを指定する設計です。
+- Standard OpenAlex `search` searches across title, abstract, and full text.
+- Title-only, abstract-only, and related search scopes use OpenAlex `.search` filters.
+- Cursor pagination allows continued retrieval across large result sets.
+- OpenAlex abstracts are returned as `abstract_inverted_index` rather than plain text, so the application reconstructs the word order in the browser.
+- Author and source filters use OpenAlex IDs rather than direct author-name or journal-name matching.
 
-## 注意
+## Notes
 
-- 静的HTML/CSS/JavaScriptのみで構成しています。APIキーをサーバー側で隠す設計ではありません。
-- 「このブラウザにAPIキーを保存する」にチェックすると、APIキーはlocalStorageに保存されます。
-- 保存した検索条件と検索履歴にはAPIキーを含めません。
-- OpenAlexの被引用数はGoogle Scholar、Scopus、Web of Scienceなどと一致しない場合があります。
-- CSVは「現在表示しているページ」を出力します。全件一括取得は実装していません。
+- The application consists only of static HTML, CSS, and JavaScript. It does not hide the API key on a server.
+- If "Save API key in this browser" is enabled, the API key is stored in localStorage.
+- Saved search conditions and search history do not include the API key.
+- Citation counts from OpenAlex may differ from Google Scholar, Scopus, Web of Science, and other databases.
+- CSV export includes only the currently displayed page. Bulk export of all matching results is not implemented.
