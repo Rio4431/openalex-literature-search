@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenAlex Literature Search</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="language-row">
+        <div class="lang-toggle" role="group" data-i18n-aria-label="languageAria">
+          <button id="langJaBtn" class="lang-btn" type="button">日本語</button>
+          <span aria-hidden="true">/</span>
+          <button id="langEnBtn" class="lang-btn" type="button">English</button>
+        </div>
+      </div>
+      <p class="eyebrow">OpenAlex API</p>
+      <h1 data-i18n="appTitle">文献探索・被引用数検索</h1>
+      <p class="lead" data-i18n="lead">検索ワードと条件でOpenAlex Worksを絞り込み、被引用数・出版年・OA・撤回情報・抄録を確認しながら文献候補を探索できます。</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel" aria-labelledby="search-heading">
+      <div class="section-heading">
+        <div>
+          <h2 id="search-heading" data-i18n="searchConditions">検索条件</h2>
+          <p class="hint" data-i18n="searchHint">APIキー以外の検索条件は保存できます。</p>
+        </div>
+      </div>
+
+      <form id="searchForm" class="search-form">
+        <label>
+          <span data-i18n="apiKey">OpenAlex APIキー</span>
+          <input id="apiKey" name="apiKey" type="password" autocomplete="off" data-i18n-placeholder="apiKeyPlaceholder" placeholder="例: oa_..." required />
+        </label>
+
+        <label>
+          <span data-i18n="query">検索ワード</span>
+          <input id="query" name="query" type="search" data-i18n-placeholder="queryPlaceholder" placeholder="例: machine learning" required />
+        </label>
+
+        <div class="form-grid three-col">
+          <label>
+            <span data-i18n="searchScope">検索範囲</span>
+            <select id="searchScope" name="searchScope">
+              <option value="all" selected data-i18n="scopeAll">タイトル・抄録・全文</option>
+              <option value="title" data-i18n="scopeTitle">タイトルのみ</option>
+              <option value="title_abstract" data-i18n="scopeTitleAbstract">タイトル＋抄録</option>
+              <option value="abstract" data-i18n="scopeAbstract">抄録のみ</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="perPage">1ページの取得件数</span>
+            <select id="perPage" name="perPage">
+              <option value="25">25</option>
+              <option value="50" selected>50</option>
+              <option value="100">100</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="sort">並び順</span>
+            <select id="sort" name="sort">
+              <option value="cited_by_count:desc" selected data-i18n="sortCitations">被引用数 降順</option>
+              <option value="publication_date:desc" data-i18n="sortDate">出版日 新しい順</option>
+              <option value="relevance_score:desc" data-i18n="sortRelevance">関連度順</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid three-col">
+          <label>
+            <span data-i18n="yearFrom">出版年 From</span>
+            <input id="yearFrom" name="yearFrom" type="number" min="1800" max="2100" data-i18n-placeholder="yearFromPlaceholder" placeholder="例: 2020" />
+          </label>
+          <label>
+            <span data-i18n="yearTo">出版年 To</span>
+            <input id="yearTo" name="yearTo" type="number" min="1800" max="2100" data-i18n-placeholder="yearToPlaceholder" placeholder="例: 2025" />
+          </label>
+          <label>
+            <span data-i18n="minCitations">最低被引用数</span>
+            <input id="minCitations" name="minCitations" type="number" min="0" step="1" data-i18n-placeholder="minCitationsPlaceholder" placeholder="例: 10" />
+          </label>
+        </div>
+
+        <div class="form-grid three-col">
+          <label>
+            <span data-i18n="workType">論文種別</span>
+            <input id="workType" name="workType" type="text" data-i18n-placeholder="workTypePlaceholder" placeholder="例: article（空欄=すべて）" />
+          </label>
+          <label>
+            <span data-i18n="openAccess">Open Access</span>
+            <select id="oaFilter" name="oaFilter">
+              <option value="any" selected data-i18n="all">すべて</option>
+              <option value="true" data-i18n="oaOnly">OAのみ</option>
+              <option value="false" data-i18n="nonOaOnly">非OAのみ</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="retractedStatus">撤回状態</span>
+            <select id="retractedFilter" name="retractedFilter">
+              <option value="any" selected data-i18n="all">すべて</option>
+              <option value="false" data-i18n="excludeRetracted">撤回論文を除外</option>
+              <option value="true" data-i18n="retractedOnly">撤回論文のみ</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid three-col">
+          <label>
+            <span data-i18n="abstractLabel">抄録</span>
+            <select id="abstractFilter" name="abstractFilter">
+              <option value="any" selected data-i18n="all">すべて</option>
+              <option value="true" data-i18n="abstractAvailable">抄録あり</option>
+              <option value="false" data-i18n="abstractUnavailable">抄録なし</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="authorId">著者 OpenAlex ID</span>
+            <input id="authorId" name="authorId" type="text" data-i18n-placeholder="authorIdPlaceholder" placeholder="例: A5023888391（任意）" />
+          </label>
+          <label>
+            <span data-i18n="sourceId">掲載先 OpenAlex ID</span>
+            <input id="sourceId" name="sourceId" type="text" data-i18n-placeholder="sourceIdPlaceholder" placeholder="例: S137773608（任意）" />
+          </label>
+        </div>
+
+        <label class="checkbox-label">
+          <input id="saveKey" name="saveKey" type="checkbox" />
+          <span data-i18n="saveApiKey">このブラウザにAPIキーを保存する</span>
+        </label>
+
+        <div class="actions">
+          <button id="searchButton" type="submit" data-i18n="searchButton">検索する</button>
+          <button id="downloadCsvButton" type="button" disabled data-i18n="downloadCsv">現在ページをCSV保存</button>
+          <button id="clearButton" type="button" data-i18n="clearInputs">入力をクリア</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel compact-panel" aria-labelledby="saved-heading">
+      <div class="section-heading">
+        <div>
+          <h2 id="saved-heading" data-i18n="savedHeading">検索条件の保存</h2>
+          <p class="hint" data-i18n="savedHint">APIキーは保存条件には含めません。</p>
+        </div>
+      </div>
+      <div class="saved-controls">
+        <label>
+          <span data-i18n="savedName">保存名</span>
+          <input id="savedSearchName" type="text" maxlength="80" data-i18n-placeholder="savedNamePlaceholder" placeholder="例: AD RNA-seq 2020-2026" />
+        </label>
+        <label>
+          <span data-i18n="savedConditions">保存済み条件</span>
+          <select id="savedSearchSelect">
+            <option value="" data-i18n="noSavedConditions">保存済み条件なし</option>
+          </select>
+        </label>
+        <div class="actions align-end">
+          <button id="saveSearchButton" type="button" data-i18n="saveCurrentConditions">現在条件を保存</button>
+          <button id="loadSearchButton" type="button" data-i18n="loadButton">読み込む</button>
+          <button id="deleteSearchButton" type="button" class="danger-soft" data-i18n="deleteButton">削除</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel status-panel" aria-live="polite">
+      <div id="status">検索条件を入力してください。</div>
+      <div id="meta" class="meta"></div>
+      <div id="pageMeta" class="meta"></div>
+    </section>
+
+    <section class="panel results-panel" aria-labelledby="results-heading">
+      <div class="results-header">
+        <div>
+          <h2 id="results-heading" data-i18n="resultsHeading">検索結果</h2>
+          <p class="hint" data-i18n="resultsHint">抄録は「抄録を表示」から展開できます。OA・撤回状態も一覧で確認できます。</p>
+        </div>
+        <div class="pagination" data-i18n-aria-label="paginationAria">
+          <button id="prevPageButton" type="button" disabled data-i18n="previous">前へ</button>
+          <span id="pageNumber">1ページ目</span>
+          <button id="nextPageButton" type="button" disabled data-i18n="next">次へ</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col" data-i18n="citationCount">被引用数</th>
+              <th scope="col" data-i18n="year">年</th>
+              <th scope="col" data-i18n="titleAbstract">タイトル / 抄録</th>
+              <th scope="col" data-i18n="authors">著者</th>
+              <th scope="col" data-i18n="source">掲載先</th>
+              <th scope="col" data-i18n="type">種別</th>
+              <th scope="col">OA</th>
+              <th scope="col" data-i18n="retracted">撤回</th>
+              <th scope="col">DOI</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr><td colspan="10" class="empty">まだ検索結果はありません。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="history-heading">
+      <div class="results-header">
+        <div>
+          <h2 id="history-heading" data-i18n="historyHeading">検索履歴</h2>
+          <p class="hint" data-i18n="historyHint">成功した検索条件をこのブラウザに最大50件保存します。APIキーは保存しません。</p>
+        </div>
+        <button id="clearHistoryButton" type="button" class="danger-soft" data-i18n="clearHistory">履歴をすべて削除</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p data-i18n="footer">データソース: OpenAlex Works API。被引用数はOpenAlexのメタデータに基づくため、Google Scholar、Web of Science、Scopus、Semantic Scholarなどと一致しない場合があります。</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
